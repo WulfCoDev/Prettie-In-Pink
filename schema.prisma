@@ -1,0 +1,44 @@
+datasource db {
+  provider = "postgresql"
+  // Wasp requires that the url is set to the DATABASE_URL environment variable.
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  
+}
+
+// Wasp requires the `prisma-client-js` generator to be present.
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Service {
+  id             Int  @id @default(autoincrement())
+  title          String
+  lengthMinutes  Int
+  price          Int
+  description    String
+  category       String
+
+}
+
+model User {
+  id             Int @id @default(autoincrement())
+  createdAt      DateTime @default(now())
+  firstName      String
+  lastName       String
+  email          String @unique
+  phoneNumber    String
+  isAdmin        Boolean @default(false)
+  addresses      Address[]
+  
+}
+
+model Address {
+  id             Int @id @default(autoincrement())
+  street         String
+  city           String
+  state          String
+  zipCode        String
+  userId         Int
+  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)    
+}
