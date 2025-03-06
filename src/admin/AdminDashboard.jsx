@@ -64,6 +64,16 @@ const AdminDashboard = ({ children }) => {
             >
               Services
             </Link>
+            <Link
+              to="/admin/availability"
+              className={`block py-2 px-4 rounded ${
+                location.pathname === "/admin/availability"
+                  ? "bg-gray-700"
+                  : "hover:bg-gray-700"
+              }`}
+            >
+              Availability
+            </Link>
           </nav>
         </aside>
 

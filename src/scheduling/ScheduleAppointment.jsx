@@ -2,6 +2,7 @@ import { useState } from "react";
 import Navbar from "../components/Navbar";
 import { Services } from "wasp/client/crud";
 import SelectService from "./SelectService";
+import SelectDateTime from "./SelectDateTime";
 
 const steps = [
   "Select Service",
@@ -65,9 +66,7 @@ const ScheduleAppointment = () => {
 
           {currentStep === 1 && (
             <div className="border p-4 rounded-md bg-white shadow-md">
-              <label className="block text-lg mb-2">
-                Select Available Date & Time:
-              </label>
+              <SelectDateTime />
             </div>
           )}
 

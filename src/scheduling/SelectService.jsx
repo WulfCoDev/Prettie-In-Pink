@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Services } from "wasp/client/crud";
 
 const SelectService = ({ selectedServices, setSelectedServices }) => {

@@ -87,6 +87,12 @@ page AdminClientsPage {
   authRequired: true
 }
 
+route AdminAvailabilityRoute { path: "/admin/availability", to: AdminAvailabilityPage }
+page AdminAvailabilityPage {
+  component: import AvailabilityPanel from "@src/admin/Availability.jsx",
+  authRequired: true
+}
+
 route AdminReportsRoute { path: "/admin/reports", to: AdminReportsPage }
 page AdminReportsPage {
   component: import Reports from "@src/admin/Reports.jsx",
@@ -129,3 +135,13 @@ crud Clients {
   }
 }
 
+crud Availability {
+  entity: Availability,
+  operations: {
+    getAll: {},
+    get: {},
+    create: {},
+    update: {},
+    delete: {},
+  }
+}
