@@ -11,7 +11,11 @@ const AvailabilityPanel = () => {
   const [isNotificationVisible, setIsNotificationVisible] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState("10:00");
+  const [selectedDay, setSelecteday] = useState(new Date());
+  const [selectedTime, setSelectedTime] = useState("09:00");
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("17:00"); // 5:00 PM
+
   const {
     data: availability,
     isLoading,
@@ -23,6 +27,59 @@ const AvailabilityPanel = () => {
 
   const handleOpenAddForm = () => {
     setIsOpen(!isOpen);
+  };
+
+  const generateTimeSlots = (start, end) => {
+    const slots = [];
+    let currentTime = new Date();
+    currentTime.setHours(
+      parseInt(start.split(":")[0]),
+      parseInt(start.split(":")[1]),
+      0,
+      0
+    );
+
+    const endTime = new Date();
+    endTime.setHours(
+      parseInt(end.split(":")[0]),
+      parseInt(end.split(":")[1]),
+      0,
+      0
+    );
+
+    while (currentTime <= endTime) {
+      const hours = currentTime.getHours();
+      const minutes = currentTime.getMinutes();
+      const period = hours >= 12 ? "PM" : "AM";
+      const formattedTime = `${hours % 12 || 12}:${
+        minutes === 0 ? "00" : minutes
+      } ${period}`;
+      slots.push(formattedTime);
+      currentTime.setHours(currentTime.getHours() + 1);
+    }
+    return slots;
+  };
+
+  const handleSubmitMultipleAvailabilities = async (e) => {
+    e.preventDefault();
+
+    // Generate time slots based on the selected start and end times
+    const timeSlots = generateTimeSlots(startTime, endTime);
+
+    try {
+      // Loop through and create availability entries for each time slot
+      for (const time of timeSlots) {
+        await createAvailability({
+          date: selectedDate.toISOString().split("T")[0],
+          time: time,
+        });
+      }
+
+      setIsNotificationVisible(true);
+      setTimeout(() => setIsNotificationVisible(false), 1000);
+    } catch (error) {
+      console.error("Error creating multiple availabilities:", error);
+    }
   };
 
   const handleCreateAvailability = async (e) => {
@@ -92,68 +149,111 @@ const AvailabilityPanel = () => {
 
       {isOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-fit">
             <div className="flex justify-between">
               <h2 className="text-xl font-bold mb-4">Set Availability</h2>
               <button onClick={handleOpenAddForm}>Close</button>
             </div>
 
-            <form
-              className="flex flex-col space-y-6"
-              onSubmit={handleCreateAvailability}
-            >
-              {/* Time Picker Section */}
-              <div className="flex flex-col space-y-2">
-                <label className="block font-medium">Select Time:</label>
-                <TimePicker
-                  onChange={setSelectedTime}
-                  value={selectedTime}
-                  className="border rounded-md p-2 w-full text-lg"
-                  clockClassName="text-lg"
-                  disableClock={true} // Hides clock icon
-                />
-                <p className="text-gray-700 font-semibold">
-                  Selected Time: {selectedTime}
-                </p>
-              </div>
+            {/* Flex container to display the forms side by side */}
+            <div className="flex space-x-6">
+              {/* Single Availability Form */}
+              <form
+                className="flex flex-col space-y-6 w-1/2"
+                onSubmit={handleCreateAvailability}
+              >
+                <div className="flex flex-col space-y-2">
+                  <label className="block font-medium">Select Time:</label>
+                  <TimePicker
+                    onChange={setSelectedTime}
+                    value={selectedTime}
+                    className="border rounded-md p-2 w-full text-lg"
+                    clockClassName="text-lg"
+                    disableClock={true}
+                  />
+                  <p className="text-gray-700 font-semibold">
+                    Selected Time: {selectedTime}
+                  </p>
+                </div>
 
-              {/* Calendar Section with Selected Date Indication */}
-              <div className="flex flex-col space-y-2">
-                <label className="block font-medium">Select Date:</label>
-                <Calendar
-                  onChange={setSelectedDate}
-                  value={selectedDate}
-                  className="border rounded-md p-2 w-full"
-                  tileClassName={({ date, view }) =>
-                    view === "month" &&
-                    date.toDateString() === selectedDate.toDateString()
-                      ? "bg-blue-500 text-white rounded-full font-bold"
-                      : "text-black"
-                  }
-                />
-                <p className="text-gray-700 font-semibold">
-                  Selected Date: {selectedDate.toDateString()}
-                </p>
-              </div>
+                <div className="flex flex-col space-y-2">
+                  <label className="block font-medium">Select Date:</label>
+                  <Calendar
+                    onChange={setSelectedDate}
+                    value={selectedDate}
+                    className="border rounded-md p-2 w-full"
+                    tileClassName={({ date, view }) =>
+                      view === "month" &&
+                      date.toDateString() === selectedDate.toDateString()
+                        ? "bg-blue-500 text-white rounded-full font-bold"
+                        : "text-black"
+                    }
+                  />
+                  <p className="text-gray-700 font-semibold">
+                    Selected Date: {selectedDate.toDateString()}
+                  </p>
+                </div>
 
-              {/* Action Buttons */}
-              <div className="flex justify-between">
-                <button
-                  type="button"
-                  className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-                  onClick={handleOpenAddForm}
-                >
-                  Cancel
-                </button>
+                <div className="flex justify-between">
+                  <button
+                    type="button"
+                    className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                    onClick={handleOpenAddForm}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                  >
+                    Save
+                  </button>
+                </div>
+              </form>
+
+              {/* Multiple Availability Form */}
+              <form
+                onSubmit={handleSubmitMultipleAvailabilities}
+                className="flex flex-col space-y-6 w-1/2"
+              >
+                <div className="flex flex-col space-y-2">
+                  <label className="block font-medium">Start Time:</label>
+                  <TimePicker
+                    onChange={setStartTime}
+                    value={startTime}
+                    className="border rounded-md p-2 w-full text-lg"
+                    clockClassName="text-lg"
+                    disableClock={true}
+                  />
+                  <label className="block font-medium">End Time:</label>
+                  <TimePicker
+                    onChange={setEndTime}
+                    value={endTime}
+                    className="border rounded-md p-2 w-full text-lg"
+                    clockClassName="text-lg"
+                    disableClock={true}
+                  />
+                </div>
+
+                <div className="flex flex-col space-y-2">
+                  <label className="block font-medium">Select Date:</label>
+                  <Calendar
+                    onChange={setSelectedDate}
+                    value={selectedDate}
+                    className="border rounded-md p-2 w-full"
+                  />
+                </div>
+
                 <button
                   type="submit"
                   className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                 >
-                  Save
+                  Save Multiple Availabilities
                 </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
+
           {isNotificationVisible && (
             <div className="notification">
               <p>Availability successfully created!</p>
@@ -177,6 +277,7 @@ const AvailabilityPanel = () => {
           `}</style>
         </div>
       )}
+
       <div>
         <h1 className="text-2xl font-bold">Time Slots</h1>
         <p>Manage all time slots here.</p>
